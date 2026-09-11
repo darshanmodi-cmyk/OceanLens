@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OceanEmbed — Ocean Reconstruction Viewer</title>
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@6.7.0/dist/maplibre-gl.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+  <header class="topbar">
+
+    <div class="brand">
+      <div class="logo">O</div>
+
+      <div>
+        <strong>OceanLens</strong>
+        <span>SUBSURFACE OCEAN INTELLIGENCE</span>
+      </div>
+    </div>
+
+
+    <!-- POINT QUERY -->
+    <button id="pointQueryBtn" class="header-point-query">
+      ⌖ POINT QUERY
+    </button>
+
+
+    <div class="mode">
+      RECONSTRUCTION <b>● LIVE DEMO</b>
+    </div>
+
+
+    <div class="actions">
+      <button id="infoBtn">ⓘ</button>
+      <button id="fullscreenBtn">⛶</button>
+    </div>
+
+  </header>
+
+  <main class="viewer">
+    <div id="map"></div>
+
+    <section class="map-title">
+      <div>
+        <div class="eyebrow">NORTH INDIAN OCEAN</div>
+        <h1 id="fieldTitle">Reconstructed Temperature</h1>
+        <p><span id="dateLabel">12 Jan 2026</span> · <span id="depthLabel">0 m</span></p>
+      </div>
+      <div class="badge">AI RECONSTRUCTION</div>
+    </section>
+
+    <aside class="left-panel">
+      <div class="panel-head"><span>LAYERS</span><button id="panelToggle">−</button></div>
+      <label class="layer"><input type="checkbox" id="tempToggle" checked><i class="temp-dot"></i> Reconstructed
+        temperature</label>
+      <label class="layer"><input type="checkbox" id="argoToggle" checked><i class="argo-dot"></i> ARGO
+        observations</label>
+      <label class="layer"><input type="checkbox" id="currentToggle"><i class="current-dot"></i> Surface
+        currents</label>
+      <label class="layer"><input type="checkbox" id="windToggle"><i class="wind-dot"></i> Surface winds</label>
+      <label class="layer"><input type="checkbox" id="gridToggle" checked><i class="grid-dot"></i> 0.25° model
+        grid</label>
+      <div class="mini-rule"></div>
+      <div class="small-title">DISPLAY</div>
+      <div class="display-row"><span>Opacity</span><strong id="opacityValue">82%</strong></div>
+      <input class="range" id="opacity" type="range" min="20" max="100" value="82">
+      <div class="display-row"><span>Scale</span><strong>AUTO</strong></div>
+      <div class="scale"><span>8°</span><span>16°</span><span>24°</span><span>32°C</span></div>
+    </aside>
+
+    <!-- VERTICAL DEPTH CONTROL -->
+    <aside class="depth-control">
+      <div class="depth-header">
+        <span>DEPTH</span><strong id="depthReadout">0 m</strong>
+      </div>
+      <div class="depth-track-wrap">
+
+        <!-- Visible draggable knob -->
+        <div class="depth-knob" id="depthKnob"></div>
+
+        <!-- Invisible range control -->
+        <input id="depthSlider" class="depth-slider" type="range" min="0" max="2000" step="1" value="1">
+
+        <div class="depth-values">
+          <span>0</span>
+          <span>200</span>
+          <span>400</span>
+          <span>600</span>
+          <span>800</span>
+          <span>1000</span>
+          <span>1200</span>
+          <span>1400</span>
+          <span>1600</span>
+          <span>1800</span>
+          <span>2000</span>
+        </div>
+      </div>
+      <div class="depth-unit">METRES</div>
+    </aside>
+
+    <div class="legend">
+      <div class="legend-title">TEMPERATURE · °C</div>
+      <div class="legend-bar"></div>
+      <div class="legend-labels">
+        <span>8</span><span>12</span><span>16</span><span>20</span><span>24</span><span>28</span><span>32</span>
+      </div>
+    </div>
+
+    <div class="cursor-readout" id="cursorReadout">LAT — · LON —</div>
+    <!-- POINT QUERY -->
+
+
+    <div id="pointQueryPanel" class="point-query-panel">
+
+      <div class="point-query-header">
+        <div>
+          <span class="eyebrow">LOCATION QUERY</span>
+          <h3>Specific Point</h3>
+        </div>
+
+        <button id="closePointQuery" class="point-query-close">
+          ×
+        </button>
+      </div>
+
+      <div class="point-query-body">
+
+        <div class="coordinate-row">
+
+          <label>
+            LATITUDE
+            <input id="queryLat" type="number" step="0.01" min="5" max="30" placeholder="18.50">
+          </label>
+
+          <label>
+            LONGITUDE
+            <input id="queryLon" type="number" step="0.01" min="45" max="105" placeholder="72.50">
+          </label>
+
+        </div>
+
+        <label class="query-field">
+          DATE
+          <input id="queryDate" type="date">
+        </label>
+
+        <label class="query-field">
+          DEPTH
+          <div class="depth-input">
+            <input id="queryDepth" type="number" min="0" max="2000" step="1" placeholder="500">
+            <span>m</span>
+          </div>
+        </label>
+
+        <button id="goToPoint" class="go-point-btn">
+          GO TO POINT
+        </button>
+
+        <div id="queryError" class="query-error"></div>
+
+      </div>
+    </div>
+
+    <!-- HORIZONTAL DATE CONTROL -->
+    <section class="date-control">
+
+      <button id="prevDay" class="date-btn">‹</button>
+
+      <div class="date-side">
+        <span>TIME</span>
+        <strong id="dateStart">—</strong>
+      </div>
+
+      <div class="date-track">
+
+        <!-- Year labels generated by JavaScript -->
+        <div class="date-ticks"></div>
+
+        <!-- Main date slider -->
+        <input id="dateSlider" type="range" min="0" max="1" value="1" step="1">
+
+        <!-- Month labels generated by JavaScript -->
+        <div class="date-months"></div>
+
+        <!-- Exact date shown under the slider handle -->
+        <div class="date-hover-date" id="dateHoverDate">
+        </div>
+
+      </div>
+
+
+
+      <button id="nextDay" class="date-btn">›</button>
+
+    </section>
+    <div class="map-hint">CLICK MAP TO INSPECT A GRID CELL</div>
+
+    <div id="loading" class="loading">
+      <div class="spinner"></div> BUILDING OCEAN FIELD
+    </div>
+  </main>
+
+  <section class="inspector" id="inspector">
+    <div class="inspector-head">
+      <div><span class="eyebrow">POINT ANALYSIS</span>
+        <h2 id="pointTitle">Select a point on the map</h2>
+      </div>
+      <button id="closeInspector">×</button>
+    </div>
+    <div class="metrics">
+
+      <div>
+        <span>LATITUDE</span>
+        <b id="pLat">—</b>
+      </div>
+
+      <div>
+        <span>LONGITUDE</span>
+        <b id="pLon">—</b>
+      </div>
+
+      <div>
+        <span>GRID CELL</span>
+        <b id="pGrid">—</b>
+      </div>
+
+      <div>
+        <span>AI TEMPERATURE</span>
+        <b id="pTemp">—</b>
+      </div>
+
+      <div>
+        <span>ARGO</span>
+        <b id="pArgo">—</b>
+      </div>
+
+      <div>
+        <span>AI − ARGO</span>
+        <b id="pDiff">—</b>
+      </div>
+
+      <!-- VALIDATION METRICS -->
+
+      <div>
+        <span>RMSE</span>
+        <b id="pRmse">—</b>
+      </div>
+
+      <div>
+        <span>BIAS</span>
+        <b id="pBias">—</b>
+      </div>
+
+      <div>
+        <span>CORRELATION</span>
+        <b id="pCorrelation">—</b>
+      </div>
+
+    </div>
+    <div class="profile-wrap">
+      <div class="profile-head"><span>TEMPERATURE PROFILE</span><small>AI vs ARGO · selected location</small></div>
+      <div id="profileChart"></div>
+    </div>
+  </section>
+
+  <div class="modal hidden" id="infoModal">
+    <div class="modal-card">
+      <button id="modalClose">×</button>
+      <div class="eyebrow">OCEANEMBED</div>
+      <h2>Satellite → Subsurface</h2>
+      <p>This frontend prototype visualizes the OceanEmbed concept: surface observations are used to reconstruct
+        subsurface ocean temperature across the North Indian Ocean.</p>
+      <div class="modal-grid">
+        <div><b>DOMAIN</b><span>5°N–30°N · 45°E–105°E</span></div>
+        <div><b>GRID</b><span>0.25° × 0.25°</span></div>
+        <div><b>DEPTHS</b><span>0–2000 m · 1 m resolution</span></div>
+        <div><b>VALIDATION</b><span>ARGO · RMSE · Bias · Correlation</span></div>
+      </div>
+      <p class="demo-note">Demo values are generated in the browser for interaction and visual demonstration.</p>
+    </div>
+  </div>
+
+  <script src="https://cdn.plot.ly/plotly-2.35.3.min.js"></script>
+  <script src="https://unpkg.com/deck.gl@9.2.2/dist.min.js"></script>
+  <script type="module" src="js/app.js"></script>
+</body>
+
+</html>
