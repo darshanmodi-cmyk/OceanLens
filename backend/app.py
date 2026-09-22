@@ -17,9 +17,7 @@ LIVE_PATH = os.path.join(ROOT_DIR, "data", "live_1hr_slice.nc")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # ==========================================
-    # 1. STARTUP: LOAD MODEL & DATA
-    # ==========================================
+    
     print("Initializing OceanEmbed engine...")
     model_path = os.path.join(ROOT_DIR, "models", "ocean_spatial_cnn.keras")
     model = tf.keras.models.load_model(model_path, custom_objects={
@@ -49,9 +47,6 @@ async def lifespan(app: FastAPI):
     cache['preds'] = model.predict(cache['x_train'][:1], verbose=0)[0]
     cache['actuals'] = cache['y_train'][0]
 
-    # ==========================================
-    # 2. SMART NOAA FETCH WITH AUTOMATIC FALLBACK
-    # ==========================================
     direct_url = "https://coastwatch.pfeg.noaa.gov/erdap/griddap/erdMH1sstdmday.nc?sst[(last)][(5.0):(30.0)][(45.0):(105.0)]"
     fetched = False
 
@@ -179,10 +174,7 @@ def get_profile(lat: float, lon: float, depth: float = 0.0):
 
     temp_deviation = abs(p_val - baseline_temp)
 
-    # ==========================================
-    # DEMO HACK: GUARANTEED ANOMALY ZONE FOR PITCH
-    # Clicking between Lat 15.0°–18.0°N and Lon 65.0°–70.0°E triggers the alert
-    # ==========================================
+    
     is_demo_zone = (15.0 <= lats[lat_idx] <= 18.0) and (65.0 <= lons[lon_idx] <= 70.0)
     is_anomaly = bool(temp_deviation > 0.75 or is_demo_zone)
     if is_demo_zone and temp_deviation <= 0.75:
