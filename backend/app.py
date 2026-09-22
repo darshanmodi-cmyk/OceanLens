@@ -99,9 +99,7 @@ async def lifespan(app: FastAPI):
     
     yield  # --- SERVER RUNNING ---
 
-    # ==========================================
-    # 3. SHUTDOWN: CLEANUP TEMPORARY DATA
-    # ==========================================
+
     print("Server shutting down. Purging temporary live data slice...")
     if os.path.exists(LIVE_PATH):
         try:
