@@ -198,7 +198,7 @@ def get_profile(lat: float, lon: float, depth: float = 0.0):
         "argoProfile": [round(float(v), 2) if v != 0.0 else None for v in act_prof],
     }
 
-# --- Frontend Routing ---
+# --- Frontend Routing (easier)---
 css_path = os.path.join(ROOT_DIR, "css")
 js_path = os.path.join(ROOT_DIR, "js")
 
